@@ -13,6 +13,15 @@ class Product extends Model
         'NamaMakanan',
         'AsalMakanan',
         'TanggalExpired',
-        'Kuantitas'
+        'JamBuka',
+        'JamTutup',
+        'Kuantitas',
+        'Image',
+        'category_id'
+
     ];
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 }

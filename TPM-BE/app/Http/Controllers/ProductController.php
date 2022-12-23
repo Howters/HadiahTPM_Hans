@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -24,7 +25,8 @@ class ProductController extends Controller
      */
     public function create()
     {
-        return view('createProduct');
+        $categories = Category::all();
+        return view('createProduct', compact('categories'));
     }
 
     /**
@@ -33,13 +35,34 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
-    {
+    public function store(Request $request){
+        $validated = $request ->validate([
+            'NamaMakanan'=> 'required|unique:products|min:5|max:255',
+            'AsalMakanan'=>  'required|min:5|max:255',
+            'TanggalExpired' => 'required',
+            'JamBuka' => 'required',
+            'JamTutup' => 'required',
+            'Kuantitas' => 'required|integer|min:5',
+            'Image'=> 'required|mimes:jpg,png'
+           
+
+            
+        ]);
+    
+    
+        $extension = $request -> file('Image')->getClientOriginalExtension();
+        $filename = $request -> NamaMakanan.'_'.$request->AsalMakanan.'.'.$extension;
+
+        $request->file('Image')->storeAs('/public/Product/', $filename);
         Product::create([
             'NamaMakanan' => $request->NamaMakanan,
             'AsalMakanan' => $request->AsalMakanan,
             'TanggalExpired' => $request->TanggalExpired,
-            'Kuantitas' => $request->Kuantitas
+            'JamBuka' => $request->JamBuka,
+            'JamTutup' => $request->JamTutup,
+            'Kuantitas' => $request->Kuantitas,
+            'Image' => $filename,
+            'category_id' => $request->category
         ]);
         return redirect('/home');
     }
@@ -63,8 +86,8 @@ class ProductController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function edit($id)
-    {
-        //
+    {   $product  = Product ::findorfail($id);
+        return view ('editProduct', compact ('product'));
     }
 
     /**
@@ -75,8 +98,25 @@ class ProductController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
-    {
-        //
+
+    {  
+        
+        $extension = $request -> file('Image')->getClientOriginalExtension();
+        $filename = $request -> NamaMakanan.'_'.$request->AsalMakanan.'.'.$extension;
+
+        $request->file('Image')->storeAs('/public/Product/', $filename);
+        Product::findorfail($id)->update([
+            'NamaMakanan' => $request->NamaMakanan,
+            'AsalMakanan' => $request->AsalMakanan,
+            'TanggalExpired' => $request->TanggalExpired,
+            'JamBuka' => $request->JamBuka,
+            'JamTutup' => $request->JamTutup,
+            'Kuantitas' => $request->Kuantitas,
+            'Image' => $filename,
+            
+        ]);
+
+        return redirect('/home');
     }
 
     /**
@@ -85,8 +125,10 @@ class ProductController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function delete ($id)
     {
-        //
+        Product::destroy ($id);
+
+        return redirect ('/home');
     }
 }
